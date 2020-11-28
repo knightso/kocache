@@ -120,6 +120,11 @@ func (c *Cache) GetWithTimeout(key interface{}, timeout time.Duration) (value in
 	return entity.GetWithTimeout(key, timeout)
 }
 
+// Len returns the number of entries in the cache.
+func (c *Cache) Len() int {
+	return c.cache.Len()
+}
+
 // ResolveFunc describes function which resolves cache.
 type ResolveFunc func(entity interface{}, err error)
 
