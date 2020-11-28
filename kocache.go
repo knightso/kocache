@@ -19,6 +19,9 @@ var (
 
 	// ErrExpired is an error that describes cache expired
 	ErrExpired = errors.New("expired")
+
+	// ErrGetCacheTimeout is an error of timeout getting cache.
+	ErrGetCacheTimeout = errors.New("get cache timeout")
 )
 
 // Cache is single flight cache
@@ -117,7 +120,7 @@ func (c *Cache) GetWithTimeout(key interface{}, timeout time.Duration) (value in
 	if entity.Expired(time.Now()) {
 		return nil, ErrExpired
 	}
-	return entity.GetWithTimeout(key, timeout)
+	return entity.getWithTimeout(key, timeout)
 }
 
 // Len returns the number of entries in the cache.
@@ -137,7 +140,7 @@ func (c *Cache) Reserve(key interface{}) ResolveFunc {
 // ReserveWithLifetime reserves cache entry to fetch indicating its lifetime.
 // Caller must try fetch the value and call resolveFunc to set result, otherwise others will wait until timeout.
 func (c *Cache) ReserveWithLifetime(key interface{}, lifetime time.Duration) ResolveFunc {
-	entry := &Entry{lock: make(chan struct{})}
+	entry := &entry{lock: make(chan struct{})}
 
 	resolve := func(entity interface{}, err error) {
 		entry.value, entry.err = entity, err
@@ -154,7 +157,7 @@ func (c *Cache) ReserveWithLifetime(key interface{}, lifetime time.Duration) Res
 	return resolve
 }
 
-func (c *Cache) getEntry(key interface{}) *Entry {
+func (c *Cache) getEntry(key interface{}) *entry {
 	v, ok := c.cache.Get(key)
 
 	if c.withStats {
@@ -169,5 +172,42 @@ func (c *Cache) getEntry(key interface{}) *Entry {
 		return nil
 	}
 
-	return v.(*Entry)
+	return v.(*entry)
+}
+
+// entry is cache entry.
+type entry struct {
+	lock     chan struct{} // lock for fetch
+	value    interface{}
+	err      error
+	expireAt time.Time // zero means no-expiration
+}
+
+// get gets cache.
+func (ce *entry) get(dst interface{}) (interface{}, error) {
+	return ce.getWithTimeout(dst, -1)
+}
+
+// getWithTimeout gets cache indicating timeout.
+func (ce *entry) getWithTimeout(dst interface{}, timeout time.Duration) (interface{}, error) {
+	if timeout < 0 { // no timeout
+		<-ce.lock
+	} else {
+		select {
+		case <-ce.lock:
+		case <-time.After(timeout):
+			return nil, ErrGetCacheTimeout
+		}
+	}
+
+	if ce.err != nil {
+		return nil, ce.err
+	}
+
+	return ce.value, nil
+}
+
+// Expired returns true if cache expired.
+func (ce *entry) Expired(now time.Time) bool {
+	return !ce.expireAt.IsZero() && now.After(ce.expireAt)
 }
