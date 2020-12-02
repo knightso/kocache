@@ -111,7 +111,7 @@ func (c *Cache) Get(key interface{}) (value interface{}, err error) {
 }
 
 // GetWithTimeout gets a cache value by a key, indicating timeout of other's fetch.
-// It returns ErrEntryNotFound if entry is not registered, and ErrGetCacheTimeout on timeout.
+// It returns ErrEntryNotFound if entry is not registered, ErrGetCacheTimeout on timeout, and ErrExpired if expired.
 func (c *Cache) GetWithTimeout(key interface{}, timeout time.Duration) (value interface{}, err error) {
 	entity := c.getEntry(key)
 	if entity == nil {
