@@ -1,6 +1,7 @@
 package kocache
 
 import (
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -133,16 +134,29 @@ type ResolveFunc func(entity interface{}, err error)
 
 // Reserve reserves cache entry to fetch.
 // Caller must try fetch the value and call resolveFunc to set result.
+// Reserve must be called jsut once. It will panic if called two or more times.
 func (c *Cache) Reserve(key interface{}) ResolveFunc {
 	return c.ReserveWithLifetime(key, c.defaultLifetime)
 }
 
 // ReserveWithLifetime reserves cache entry to fetch indicating its lifetime.
 // Caller must try fetch the value and call resolveFunc to set result, otherwise others will wait until timeout.
+// ReserveWithLifetime  must be called jsut once. It will panic if called two or more times.
 func (c *Cache) ReserveWithLifetime(key interface{}, lifetime time.Duration) ResolveFunc {
 	entry := &entry{lock: make(chan struct{})}
 
+	var mux sync.Mutex
+	reserved := false
+
 	resolve := func(entity interface{}, err error) {
+		mux.Lock()
+		defer mux.Unlock()
+
+		if reserved {
+			panic("already reserved")
+		}
+		reserved = true
+
 		entry.value, entry.err = entity, err
 
 		if lifetime >= 0 {
