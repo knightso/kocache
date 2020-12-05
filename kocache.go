@@ -164,6 +164,7 @@ func (c *Cache) ReserveWithLifetime(key interface{}, lifetime time.Duration) Res
 		}
 
 		close(entry.lock)
+		entry.lock = nil // set nil to save memory
 	}
 
 	c.cache.Add(key, entry)
@@ -204,13 +205,15 @@ func (ce *entry) get(dst interface{}) (interface{}, error) {
 
 // getWithTimeout gets cache indicating timeout.
 func (ce *entry) getWithTimeout(dst interface{}, timeout time.Duration) (interface{}, error) {
-	if timeout < 0 { // no timeout
-		<-ce.lock
-	} else {
-		select {
-		case <-ce.lock:
-		case <-time.After(timeout):
-			return nil, ErrGetCacheTimeout
+	if lock := ce.lock; lock != nil { // nil lock means cache is ready
+		if timeout < 0 { // no timeout
+			<-lock
+		} else {
+			select {
+			case <-lock:
+			case <-time.After(timeout):
+				return nil, ErrGetCacheTimeout
+			}
 		}
 	}
 
