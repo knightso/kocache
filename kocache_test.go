@@ -14,6 +14,14 @@ func TestGetAndReserve(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// create utility method to synchronize testing report.
+	var mux sync.Mutex
+	lock := func(f func()) {
+		mux.Lock()
+		defer mux.Unlock()
+		f()
+	}
+
 	key := "testkey"
 
 	_, err = cache.Get(key)
@@ -24,19 +32,22 @@ func TestGetAndReserve(t *testing.T) {
 	resolve := cache.Reserve(key)
 
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
 
-		value, err := cache.Get(key)
-		if err != nil {
-			t.Error(err)
-		}
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
 
-		if expected, actual := "testvalue", value.(string); expected != actual {
-			t.Fatalf("value - expected:%s, but was:%s", expected, actual)
-		}
-	}()
+			value, err := cache.Get(key)
+			if err != nil {
+				lock(func() { t.Error(err) })
+			}
+
+			if expected, actual := "testvalue", value.(string); expected != actual {
+				lock(func() { t.Fatalf("value - expected:%s, but was:%s", expected, actual) })
+			}
+		}()
+	}
 
 	time.Sleep(time.Second)
 
