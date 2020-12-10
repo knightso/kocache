@@ -31,6 +31,8 @@ resolve(data, nil)
 
 Full docs are available on [Godoc](https://pkg.go.dev/github.com/knightso/kocache)
 
+And you can see the design concept at [Qiita](https://qiita.com/hogedigo/items/21283e922b321be90aa4)  (Sorry, but it's Japanese)
+
 # Dependencies(Thanks)
 
 * kocache wraps [hashicorp/golang-lru](https://github.com/hashicorp/golang-lru0) inside.
