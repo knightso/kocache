@@ -22,9 +22,11 @@ value, err := cache.Get(key)
 ```Go
 resolve := cache.Reserve(key)
 
-(fetch data from)
-
-resolve(data, nil)
+data, err := fetchSomething();
+resolve(data, err)
+if err != nil {
+    return err
+}
 ```
 
 # Documentation
