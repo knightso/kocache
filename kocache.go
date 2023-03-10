@@ -129,6 +129,11 @@ func (c *Cache) Len() int {
 	return c.cache.Len()
 }
 
+// Stats retuns statistics of the cache
+func (c *Cache) Stats() Stats {
+	return c.stats
+}
+
 // ResolveFunc describes function which resolves cache.
 type ResolveFunc func(entity interface{}, err error)
 

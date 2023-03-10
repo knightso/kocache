@@ -29,6 +29,13 @@ if err != nil {
 }
 ```
 
+## Stats
+
+```Go
+stats := cache.Stats()
+fmt.Printf("%+v", stats) // {Hits:123 Misses:456}
+```
+
 # Documentation
 
 Full docs are available on [Godoc](https://pkg.go.dev/github.com/knightso/kocache)
@@ -37,4 +44,4 @@ And you can see the design concept at [Qiita](https://qiita.com/hogedigo/items/2
 
 # Dependencies(Thanks)
 
-* kocache wraps [hashicorp/golang-lru](https://github.com/hashicorp/golang-lru0) inside.
+* kocache wraps [hashicorp/golang-lru](https://github.com/hashicorp/golang-lru) inside.
