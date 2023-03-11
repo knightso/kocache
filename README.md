@@ -8,7 +8,7 @@ While one request is trying to fetch data to cache, subsequent requests wait for
 ## Initialization
 
 ```Go
-cache, err := kocache.New()
+cache, err := kocache.New[string, string]()
 ```
 
 ## Get
