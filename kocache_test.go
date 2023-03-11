@@ -1,3 +1,4 @@
+//go:build faketime
 // +build faketime
 
 package kocache
@@ -11,7 +12,7 @@ import (
 func TestGetAndReserve(t *testing.T) {
 	start := time.Now()
 
-	cache, err := New()
+	cache, err := New[string, string]()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +66,7 @@ func TestGetAndReserve(t *testing.T) {
 				lock(func() { t.Errorf("expected:%v, but was:%v", expected, actual) })
 			}
 
-			if actual, expected := value.(string), "value1"; actual != expected {
+			if actual, expected := value, "value1"; actual != expected {
 				lock(func() { t.Errorf("expected:%v, but was:%v", expected, actual) })
 			}
 		}()
@@ -92,7 +93,7 @@ func TestLifetime(t *testing.T) {
 		duration = d
 	}
 
-	cache, err := New(WithDefaultLifetime(time.Minute))
+	cache, err := New[string, string](WithDefaultLifetime(time.Minute))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,7 +107,7 @@ func TestLifetime(t *testing.T) {
 			t.Error(err)
 		}
 
-		if actual, expected := value.(string), "default_value"; actual != expected {
+		if actual, expected := value, "default_value"; actual != expected {
 			t.Fatalf("value - expected:%s, but was:%s", expected, actual)
 		}
 	}
@@ -117,7 +118,7 @@ func TestLifetime(t *testing.T) {
 			t.Error(err)
 		}
 
-		if actual, expected := value.(string), "30sec_value"; actual != expected {
+		if actual, expected := value, "30sec_value"; actual != expected {
 			t.Fatalf("value - expected:%s, but was:%s", expected, actual)
 		}
 	}
@@ -130,7 +131,7 @@ func TestLifetime(t *testing.T) {
 			t.Error(err)
 		}
 
-		if actual, expected := value.(string), "default_value"; actual != expected {
+		if actual, expected := value, "default_value"; actual != expected {
 			t.Fatalf("value - expected:%s, but was:%s", expected, actual)
 		}
 	}
@@ -141,7 +142,7 @@ func TestLifetime(t *testing.T) {
 			t.Error(err)
 		}
 
-		if actual, expected := value.(string), "30sec_value"; actual != expected {
+		if actual, expected := value, "30sec_value"; actual != expected {
 			t.Fatalf("value - expected:%s, but was:%s", expected, actual)
 		}
 	}
@@ -154,7 +155,7 @@ func TestLifetime(t *testing.T) {
 			t.Error(err)
 		}
 
-		if actual, expected := value.(string), "default_value"; actual != expected {
+		if actual, expected := value, "default_value"; actual != expected {
 			t.Fatalf("value - expected:%s, but was:%s", expected, actual)
 		}
 	}
@@ -174,7 +175,7 @@ func TestLifetime(t *testing.T) {
 			t.Error(err)
 		}
 
-		if actual, expected := value.(string), "default_value"; actual != expected {
+		if actual, expected := value, "default_value"; actual != expected {
 			t.Fatalf("value - expected:%s, but was:%s", expected, actual)
 		}
 	}
@@ -198,7 +199,7 @@ func TestTimeout(t *testing.T) {
 		duration = d
 	}
 
-	cache, err := New()
+	cache, err := New[string, string]()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -239,13 +240,13 @@ func TestTimeout(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if actual, expected := value.(string), "testvalue"; actual != expected {
+	if actual, expected := value, "testvalue"; actual != expected {
 		t.Fatalf("expected:%v, but was:%v", expected, actual)
 	}
 }
 
 func TestWithSize(t *testing.T) {
-	cache, err := New(WithSize(5))
+	cache, err := New[string, string](WithSize(5))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -279,7 +280,7 @@ func TestWithSize(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if actual, expected := value.(string), "value2"; actual != expected {
+		if actual, expected := value, "value2"; actual != expected {
 			t.Fatalf("expected:%v, but was:%v", expected, actual)
 		}
 	}
@@ -298,7 +299,7 @@ func TestWithSize(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if actual, expected := value.(string), "value2"; actual != expected {
+		if actual, expected := value, "value2"; actual != expected {
 			t.Fatalf("expected:%v, but was:%v", expected, actual)
 		}
 	}
